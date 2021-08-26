@@ -9,8 +9,14 @@
     <PackageReference Include="Fable.Elmish.React" Version="3.0.1" />
     <PackageReference Include="Fable.FontAwesome" Version="2.0.0" />
     <PackageReference Include="Fable.FontAwesome.Free" Version="2.1.0" />
+    <PackageReference Include="Fable.React" Version="7.4.1" />
+    <PackageReference Include="Fable.ReactLeaflet" Version="1.0.1" />
     <PackageReference Include="Feliz" Version="0.68.10" />
+    <PackageReference Include="Feliz.Bulma" Version="2.17.0" />
     <PackageReference Include="Feliz.PigeonMaps" Version="2.5.0" />
+    <PackageReference Include="Feliz.Popover" Version="2.3.0" />
     <PackageReference Include="font-awesome" Version="4.7.0" />
+    <PackageReference Include="Fulma" Version="2.14.1" />
+    <PackageReference Include="Leaflet" Version="0.7.3" />
   </ItemGroup>
 </Project>
