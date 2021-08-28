@@ -29,7 +29,7 @@ type Boxes = Map<int, BoxStatus>
 type State =
     { Count: int
       Boxes: Boxes
-      AdultInput: int
+      AdultsInput: int
       EggsInput: int
       ChicksInput: int
       DisplayPopover: bool }
@@ -38,9 +38,10 @@ type Msg =
     | Increment
     | Decrement
     | BoxClick of int
-    | SetAdultInput of int
+    | SetAdultsInput of int
     | SetEggsInput of int
     | SetChicksInput of int
+    | SetSubmit
     | DisplayPopover
 
 
@@ -56,7 +57,7 @@ let init() =
                     
     { Count = 0
       Boxes = boxes 
-      AdultInput = 0
+      AdultsInput = 0
       EggsInput = 0
       ChicksInput = 0
       DisplayPopover = false }
@@ -72,9 +73,11 @@ let update (msg: Msg) (state: State): State =
     | BoxClick i->
         state
 
-    | SetAdultInput i -> { state with AdultInput = i }
+    | SetAdultsInput i -> { state with AdultsInput = i }
     | SetEggsInput i -> { state with EggsInput = i }
     | SetChicksInput i -> { state with ChicksInput = i }
+
+    | SetSubmit -> state
 
     | DisplayPopover -> 
                         printfn "%A" state.DisplayPopover
@@ -130,54 +133,53 @@ let pigeonMap (boxes: Boxes) (dispatch: Msg -> unit) =
     ]
 
 
-let buildMarker (marker: RLMarker): ReactElement =
+let buildMarker (marker: RLMarker) (state: State) (dispatch: Msg -> unit) : ReactElement =
     RL.marker 
       [ 
         RL.MarkerProps.Position marker.position ] 
       [ RL.popup 
-          [ RL.PopupProps.Key marker.info]
+          [ RL.PopupProps.Key marker.info; RL.PopupProps.MaxWidth 200.; RL.PopupProps.MinWidth 200.;]
           [ Control.p 
               [] 
               [ Html.p [ !!marker.info ] ]
             Html.form [
-              Bulma.columns [
-                  Bulma.column [
-                      column.is2 // <-- note context helper here
-                      prop.children [
-                        Bulma.field.div [
-                          Bulma.label "Adults"
-                          Bulma.control.div [
-                            Bulma.input.text [
-                              prop.placeholder "0"
-                            ]
-                          ]
-                        ]
-                      ]
+              Bulma.field.div [
+                Bulma.label "Adults"
+                Bulma.control.div [
+                  Bulma.input.number [
+                    prop.placeholder "0"
+                    prop.valueOrDefault state.AdultsInput
+                    prop.onTextChange (fun i -> (int)i |> (SetAdultsInput >> dispatch ))
                   ]
-                  Bulma.column [
-                      column.is2 // <-- note context helper here
-                      prop.children [
-                          Bulma.button.button "Click me"
-                      ]
+                ]
+              ]
+              Bulma.field.div [
+                Bulma.label "Eggs"
+                Bulma.control.div [
+                  Bulma.input.number [
+                    prop.placeholder "0"
+                    prop.valueOrDefault state.EggsInput
+                    prop.onTextChange (fun i -> (int)i |> (SetEggsInput >> dispatch ))
                   ]
+                ]
+              ]
+              Bulma.field.div [
+                Bulma.label "Chicks"
+                Bulma.control.div [
+                  Bulma.input.number [
+                    prop.placeholder "0"
+                    prop.valueOrDefault state.ChicksInput
+                    prop.onTextChange (fun i -> (int)i |> (SetChicksInput >> dispatch ))
+                  ]
+                ]
+              ]
+              Bulma.button.button [
+                prop.text "Submit"
+                prop.onClick (fun _ -> dispatch SetSubmit)
               ]
             ]
 
-            Html.div [
-              Html.input [
-                prop.classes ["input"; "is-medium"]
-                prop.valueOrDefault "test"
-                // prop.onTextChange (SetEditedDescription >> dispatch)
-              ]
-            ]
-            Control.p 
-                [] 
-                [ Button.a
-                    [ Button.Size IsSmall
-                      Button.Props [  ] ]
-                    [ Icon.icon [ ]
-                        [ ]
-                      Html.span "Go to" ] ] ] ]   
+         ] ]
 
 let tile =
   RL.tileLayer
@@ -188,10 +190,10 @@ let tile =
       ]
     []
 
-let mapBoxes (state: State) =
+let mapBoxes (state: State) (dispatch: Msg -> unit) =
   let markers = 
     [for KeyValue(k,v) in state.Boxes do
-      buildMarker { info = (string)k; position = Fable.Core.U3.Case3(v.Location.Lat, v.Location.Lng) } ]
+      buildMarker { info = (string)k; position = Fable.Core.U3.Case3(v.Location.Lat, v.Location.Lng) } state dispatch ]
     |> List.tail
     
   tile :: markers
@@ -218,7 +220,7 @@ let render (state: State) (dispatch: Msg -> unit) =
                     RL.MapProps.MaxZoom 22.;
                     RL.MapProps.Style [ Fable.React.Props.CSSProp.Height 500; Fable.React.Props.CSSProp.MinWidth 200; Fable.React.Props.CSSProp.Width Column.IsFull ];
                     RL.MapProps.Center ( Fable.Core.U3.Case3 (-41.34929470266615, 174.77286007970827))  ]
-                    (mapBoxes state)
+                    (mapBoxes state dispatch)
 
 
                 Html.button [
